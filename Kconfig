@@ -1,0 +1,45 @@
+menuconfig AHTTPD_ENABLE
+    bool "Async HTTPD (ahttpd)"
+    default y
+    help
+       If the option is enabled, "Async HTTPD" works.
+
+config AHTTPD_ENABLE_ESPFS
+    depends on AHTTPD_ENABLE
+    bool "Embed ESPFS image"
+    default y
+    help
+        Enables embeding static files for the webserver
+
+config AHTTPD_HTMLDIR
+    depends on AHTTPD_ENABLE_ESPFS
+    string "Source html files dir"
+    default "html/"
+
+config AHTTPD_HTML_GENERATE_CMD
+    depends on AHTTPD_ENABLE_ESPFS
+    string "Command to generate html files"
+    default "mkdir -p"
+    help
+        Will be passed $(PROJECT_PATH)/$(CONFIG_AHTTPD_HTMLDIR) as first argument
+
+config AHTTPD_ESPFS_HEATSHRINK
+    depends on AHTTPD_ENABLE_ESPFS
+    bool "Heatshrink files"
+    default y
+    help
+        Enable Heatshrinking files
+
+config AHTTPD_ESPFS_GZIP
+    depends on AHTTPD_ENABLE_ESPFS
+    bool "GZIP files"
+    default y
+    help
+        Enable GZIPing files
+
+config AHTTPD_ESPFS_GZIP_EXTS
+    depends on AHTTPD_ESPFS_GZIP
+    string "Files to GZIP"
+    default "html,css,js,svg"
+    help
+        Enable GZIPing files specified in csv (passed to mkespfsimage via '-g')
