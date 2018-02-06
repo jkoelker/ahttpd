@@ -670,6 +670,11 @@ esp_err_t ahttpd_stop(struct ahttpd *httpd) {
 void ahttpd_start_response(struct ahttpd_request *request, uint16_t code) {
     struct ahttpd_state *state = (struct ahttpd_state *)request->_state;
     char buf[32];
+
+    if (state == NULL) {
+        return;
+    }
+
     snprintf(buf, sizeof(buf), "HTTPD/1.1 %" PRIu16 " OK\r\n", code);
     ahttpd_write(state, state->pcb, buf, strlen(buf));
 }
@@ -679,6 +684,11 @@ void ahttpd_send_header(struct ahttpd_request *request, char *name,
                         char *value) {
     struct ahttpd_state *state = (struct ahttpd_state *)request->_state;
     char buf[AHTTPD_MAX_HEADER_NAME_SIZE + AHTTPD_MAX_HEADER_VALUE_SIZE] = {0};
+
+    if (state == NULL) {
+        return;
+    }
+
     snprintf(buf, sizeof(buf), "%s: %s\r\n", name, value);
     ahttpd_write(state, state->pcb, buf, strlen(buf));
 }
@@ -690,6 +700,10 @@ void ahttpd_send_headers(struct ahttpd_request *request,
     struct ahttpd_header *header = headers;
     char buf[AHTTPD_MAX_HEADER_NAME_SIZE + AHTTPD_MAX_HEADER_VALUE_SIZE] = {0};
 
+    if (state == NULL) {
+        return;
+    }
+
     while (header != NULL) {
         snprintf(buf, sizeof(buf), "%s: %s\r\n", header->name, header->value);
         ahttpd_write(state, state->pcb, buf, strlen(buf));
@@ -700,12 +714,22 @@ void ahttpd_send_headers(struct ahttpd_request *request,
 
 void ahttpd_end_headers(struct ahttpd_request *request) {
     struct ahttpd_state *state = (struct ahttpd_state *)request->_state;
+
+    if (state == NULL) {
+        return;
+    }
+
     ahttpd_write(state, state->pcb, "\r\n", 2);
 }
 
 
 void ahttpd_send(struct ahttpd_request *request, void *buf, size_t length) {
     struct ahttpd_state *state = (struct ahttpd_state *)request->_state;
+
+    if (state == NULL) {
+        return;
+    }
+
     ahttpd_write(state, state->pcb, buf, length);
 }
 
