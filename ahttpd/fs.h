@@ -32,8 +32,10 @@
 
 
 enum ahttpd_status ahttpd_fs_handler(struct ahttpd_request *request);
+
 void ahttpd_fs_501_handler(
         enum ahttpd_status (*handler)(struct ahttpd_request *));
+
 
 #endif /* CONFIG_AHTTPD_ENABLE_ESPFS */
 #endif /* AHTTPD_FS_H_ */
