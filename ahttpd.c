@@ -728,3 +728,14 @@ struct ahttpd_header *ahttpd_find_header(struct ahttpd_request *request,
 
     return NULL;
 }
+
+
+ip_addr_t *ahttpd_remote_ip(struct ahttpd_request *request) {
+    struct ahttpd_state *state = (struct ahttpd_state *)request->_state;
+
+    if (state == NULL) {
+        return NULL;
+    }
+
+    return &(state->pcb->remote_ip);
+}

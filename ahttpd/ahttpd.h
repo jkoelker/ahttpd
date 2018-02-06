@@ -127,4 +127,6 @@ void ahttpd_send_file(struct ahttpd_request *request, const char *pathname);
 struct ahttpd_header *ahttpd_find_header(struct ahttpd_request *request,
                                          char *name);
 
+ip_addr_t *ahttpd_remote_ip(struct ahttpd_request *request);
+
 #endif /* AHTTPD_HTTPD_H_ */
