@@ -167,6 +167,10 @@ enum ahttpd_status ahttpd_router(struct ahttpd_request *request) {
             status = route->handler(request);
 
             if (status != AHTTPD_NOT_FOUND) {
+                /* NOTE(jkoelker) Since this route handled the request, set it
+                                  as the handler to avoid this lookup next
+                                  time */
+                request->handler = route->handler;
                 return status;
             }
 
