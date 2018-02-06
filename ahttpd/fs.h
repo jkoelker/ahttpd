@@ -25,9 +25,6 @@
 
 #ifdef CONFIG_AHTTPD_ENABLE_ESPFS
 
-#include <esp_err.h>
-#include <stdint.h>
-
 #include <ahttpd/ahttpd.h>
 
 
