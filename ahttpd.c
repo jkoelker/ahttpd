@@ -715,3 +715,16 @@ void ahttpd_send_file(struct ahttpd_request *request, const char *pathname) {
     struct ahttpd_state *state = (struct ahttpd_state *)request->_state;
     */
 }
+
+
+struct ahttpd_header *ahttpd_find_header(struct ahttpd_request *request,
+                                         char *name) {
+    struct ahttpd_header *header;
+    while ((header = request->headers) != NULL) {
+        if (strcasecmp(name, header->name) == 0) {
+            return header;
+        }
+    }
+
+    return NULL;
+}
