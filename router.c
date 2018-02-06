@@ -24,6 +24,7 @@
 #include <esp_log.h>
 
 #include <string.h>
+#include <stdint.h>
 
 #include "ahttpd/ahttpd.h"
 #include "ahttpd/router.h"
@@ -180,4 +181,28 @@ enum ahttpd_status ahttpd_router(struct ahttpd_request *request) {
     }
 
     return ahttpd_404(request);
+}
+
+
+static enum ahttpd_status _ahttpd_redirect(struct ahttpd_request *request,
+                                           uint16_t code, char *url) {
+    /* AHTTPD_MAX_URL_SIZE + strlen("Moved to ") + 1 */
+    char body[AHTTPD_MAX_URL_SIZE + 10];
+
+    if (url == NULL) {
+        return AHTTPD_NOT_FOUND;
+    }
+
+    snprintf(body, sizeof(body), "Moved to %s", url);
+    ahttpd_start_response(request, code);
+    ahttpd_send_header(request, "Location", url);
+    ahttpd_end_headers(request);
+    ahttpd_send(request, body, strlen((char *)body));
+    return AHTTPD_DONE;
+}
+
+
+enum ahttpd_status ahttpd_redirect(struct ahttpd_request *request) {
+    char *url = (char *)request->data;
+    return _ahttpd_redirect(request, 302, url);
 }

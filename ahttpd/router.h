@@ -56,5 +56,8 @@ void ahttpd_router_404_handler(
 
 enum ahttpd_status ahttpd_router(struct ahttpd_request *request);
 
+/* Redirects to the url in request->data */
+enum ahttpd_status ahttpd_redirect(struct ahttpd_request *request);
+
 
 #endif /* AHTTPD_ROUTER_H_ */
