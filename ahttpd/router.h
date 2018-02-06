@@ -44,11 +44,16 @@ struct ahttpd_route *ahttpd_route_new(
         enum http_method method,
         uint8_t *url,
         enum ahttpd_status (*handler)(struct ahttpd_request *));
+
 void ahttpd_route_free(struct ahttpd_route *route);
+
 esp_err_t ahttpd_init_routes(struct ahttpd_route *routes);
+
 struct ahttpd_route *ahttpd_get_routes(void);
+
 void ahttpd_router_404_handler(
         enum ahttpd_status (*handler)(struct ahttpd_request *));
+
 enum ahttpd_status ahttpd_router(struct ahttpd_request *request);
 
 
