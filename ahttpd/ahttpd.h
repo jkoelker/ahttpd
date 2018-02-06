@@ -107,15 +107,21 @@ struct ahttpd_options {
 
 esp_err_t ahttpd_start(const struct ahttpd_options *options,
                        struct ahttpd **out_httpd);
+
 esp_err_t ahttpd_stop(struct ahttpd *httpd);
 
 void ahttpd_start_response(struct ahttpd_request *request, uint16_t code);
+
 void ahttpd_send_header(struct ahttpd_request *request, char *name,
                         char *value);
+
 void ahttpd_send_headers(struct ahttpd_request *request,
                          struct ahttpd_header *headers);
+
 void ahttpd_end_headers(struct ahttpd_request *request);
+
 void ahttpd_send(struct ahttpd_request *request, void *buf, size_t length);
+
 void ahttpd_send_file(struct ahttpd_request *request, const char *pathname);
 
 struct ahttpd_header *ahttpd_find_header(struct ahttpd_request *request,
