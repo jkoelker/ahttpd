@@ -20,13 +20,15 @@
  SOFTWARE.
  */
 
+#include <stddef.h>
+#include <string.h>
+
 #ifdef CONFIG_AHTTPD_ENABLE_ESPFS
 
 #include <esp_err.h>
 #include <esp_log.h>
 
 #include <stdbool.h>
-#include <string.h>
 
 #include "espfs/espfs.h"
 #include "espfs/webpages-espfs.h"
@@ -169,3 +171,55 @@ void ahttpd_fs_501_handler(
 
 
 #endif /* CONFIG_AHTTPD_ENABLE_ESPFS */
+
+
+struct mime_map {
+    const char *ext;
+    const char *mime;
+};
+
+
+static const char *(*_mimetype)(const char *ext) = NULL;
+static const struct mime_map mimetypes[] = {
+    {"html", "text/html"},
+    {"htm", "text/html"},
+    {"css", "text/css"},
+    {"js", "text/javascript"},
+    {"txt", "text/plain"},
+    {"jpg", "image/jpeg"},
+    {"jpeg", "image/jpeg"},
+    {"png", "image/png"},
+    {"svg", "image/svg+xml"},
+    {"xml", "text/xml"},
+    {"json", "application/json"},
+    {"eot", "application/vnd.ms-fontobject"},
+    {"ttf", "application/font-sfnt"},
+    {"woff", "application/font-woff"},
+    {"woff2", "application/font-woff2"},
+};
+
+
+void ahttpd_fs_mimetype_handler(const char *(*handler)(const char *ext)) {
+    _mimetype = handler;
+}
+
+
+const char *ahttpd_fs_mimetype(const char *ext) {
+    const char *mimetype;
+
+    if (_mimetype != NULL) {
+        mimetype = _mimetype(ext);
+
+        if (mimetype != NULL) {
+            return mimetype;
+        }
+    }
+
+    for (size_t i = 0; i < (sizeof(mimetypes) / sizeof(*mimetypes)); i++) {
+        if (strcasecmp(mimetypes[i].ext, ext) == 0) {
+            return mimetypes[i].mime;
+        }
+    }
+
+    return NULL;
+}

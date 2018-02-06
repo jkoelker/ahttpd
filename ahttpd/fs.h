@@ -35,4 +35,9 @@ void ahttpd_fs_501_handler(
 
 
 #endif /* CONFIG_AHTTPD_ENABLE_ESPFS */
+
+void ahttpd_fs_mimetype_handler(const char *(*handler)(const char *ext));
+
+const char *ahttpd_fs_mimetype(const char *ext);
+
 #endif /* AHTTPD_FS_H_ */
