@@ -118,12 +118,14 @@ enum ahttpd_status ahttpd_fs_handler(struct ahttpd_request *request) {
     if (file == NULL) {
         bool gzipped;
         struct ahttpd_header *accept;
+        const char *mimetype;
 
         file = espFsOpen(request->url);
 
         if (file == NULL) {
             uint8_t buf[AHTTPD_MAX_URL_SIZE];
             snprintf(buf, sizeof(buf), "%s/index.html", request->url);
+            mimetype = "text/html";
             file = espFsOpen(buf);
         }
 
@@ -142,8 +144,21 @@ enum ahttpd_status ahttpd_fs_handler(struct ahttpd_request *request) {
 
         request->data = file;
 
+        if (mimetype == NULL) {
+            char *ext = request->url + strlen(request->url) - 1;
+            while (ext != request->url && *(ext - 1) != '.') {
+                ext--;
+            }
+
+            mimetype = ahttpd_fs_mimetype(ext);
+
+            if (mimetype == NULL) {
+                mimetype = "application/octet-stream";
+            }
+        }
+
         ahttpd_start_response(request, 200);
-        ahttpd_send_header(request, "Content-Type", "");
+        ahttpd_send_header(request, "Content-Type", mimetype);
         ahttpd_send_header(request, "Cache-Control",
                            "max-age=3600, must-revalidate");
 
