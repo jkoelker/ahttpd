@@ -37,6 +37,7 @@ static enum ahttpd_status (*_404)(struct ahttpd_request *) = NULL;
 
 static enum ahttpd_status ahttpd_404(struct ahttpd_request *request) {
     if (_404 != NULL) {
+        request->handler = _404;
         return _404(request);
     }
 
