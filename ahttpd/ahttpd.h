@@ -112,8 +112,8 @@ esp_err_t ahttpd_stop(struct ahttpd *httpd);
 
 void ahttpd_start_response(struct ahttpd_request *request, uint16_t code);
 
-void ahttpd_send_header(struct ahttpd_request *request, char *name,
-                        char *value);
+void ahttpd_send_header(struct ahttpd_request *request, const char *name,
+                        const char *value);
 
 void ahttpd_send_headers(struct ahttpd_request *request,
                          struct ahttpd_header *headers);

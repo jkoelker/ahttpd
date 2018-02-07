@@ -680,8 +680,8 @@ void ahttpd_start_response(struct ahttpd_request *request, uint16_t code) {
 }
 
 
-void ahttpd_send_header(struct ahttpd_request *request, char *name,
-                        char *value) {
+void ahttpd_send_header(struct ahttpd_request *request, const char *name,
+                        const char *value) {
     struct ahttpd_state *state = (struct ahttpd_state *)request->_state;
     char buf[AHTTPD_MAX_HEADER_NAME_SIZE + AHTTPD_MAX_HEADER_VALUE_SIZE] = {0};
 
