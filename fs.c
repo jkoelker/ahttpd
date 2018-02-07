@@ -23,6 +23,8 @@
 #include <stddef.h>
 #include <string.h>
 
+#include "ahttpd/fs.h"
+
 #ifdef CONFIG_AHTTPD_ENABLE_ESPFS
 
 #include <esp_err.h>
@@ -30,6 +32,7 @@
 
 #include <stdbool.h>
 
+#include "espfs/espfsformat.h"
 #include "espfs/espfs.h"
 #include "espfs/webpages-espfs.h"
 
@@ -57,8 +60,7 @@ static enum ahttpd_status ahttpd_501(struct ahttpd_request *request) {
     ahttpd_send_header(request, "Server", "AHTTPD/1.0");
     ahttpd_end_headers(request);
     ahttpd_send(request, body, strlen((char *)body));
-    return AHTTPD_DONE
-
+    return AHTTPD_DONE;
 }
 
 
@@ -120,10 +122,10 @@ enum ahttpd_status ahttpd_fs_handler(struct ahttpd_request *request) {
         struct ahttpd_header *accept;
         const char *mimetype;
 
-        file = espFsOpen(request->url);
+        file = espFsOpen((char *)request->url);
 
         if (file == NULL) {
-            uint8_t buf[AHTTPD_MAX_URL_SIZE];
+            char buf[AHTTPD_MAX_URL_SIZE];
             snprintf(buf, sizeof(buf), "%s/index.html", request->url);
             mimetype = "text/html";
             file = espFsOpen(buf);
@@ -135,8 +137,8 @@ enum ahttpd_status ahttpd_fs_handler(struct ahttpd_request *request) {
 
         gzipped = (espFsFlags(file) & FLAG_GZIP) == FLAG_GZIP;
         if (gzipped) {
-            accept = ahttpd_find_header(requst, "Accept-Encoding");
-            if (accept == NULL || strcasestr(accept->value, "gzip") == NULL) {
+            accept = ahttpd_find_header(request, "Accept-Encoding");
+            if (accept == NULL || strstr(accept->value, "gzip") == NULL) {
                 espFsClose(file);
                 return ahttpd_501(request);
             }
@@ -145,8 +147,8 @@ enum ahttpd_status ahttpd_fs_handler(struct ahttpd_request *request) {
         request->data = file;
 
         if (mimetype == NULL) {
-            char *ext = request->url + strlen(request->url) - 1;
-            while (ext != request->url && *(ext - 1) != '.') {
+            char *ext = (char *)request->url + strlen((char *)request->url) - 1;
+            while (ext != (char *)request->url && *(ext - 1) != '.') {
                 ext--;
             }
 
@@ -170,7 +172,8 @@ enum ahttpd_status ahttpd_fs_handler(struct ahttpd_request *request) {
         return AHTTPD_MORE;
     }
 
-    if (espFsRead(file, buf, CHUNK_SIZE) > 0) {
+    int len = espFsRead(file, buf, CHUNK_SIZE);
+    if (len > 0) {
         ahttpd_send(request, buf, len);
         return AHTTPD_MORE;
     }
