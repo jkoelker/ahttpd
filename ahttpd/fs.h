@@ -26,6 +26,14 @@
 #ifdef CONFIG_AHTTPD_ENABLE_ESPFS
 
 #include <ahttpd/ahttpd.h>
+#include <ahttpd/router.h>
+
+
+#define AHTTPD_FS_URL(routes, url) \
+    AHTTPD_ROUTE(routes, AHTTPD_GET, url, &(ahttpd_fs_handler), NULL)
+
+#define AHTTPD_FS(routes) \
+    AHTTPD_FS_URL(routes, "*")
 
 
 enum ahttpd_status ahttpd_fs_handler(struct ahttpd_request *request);
