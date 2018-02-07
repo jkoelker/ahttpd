@@ -5,8 +5,10 @@ ifdef CONFIG_AHTTPD_ENABLE
 
 COMPONENT_ADD_INCLUDEDIRS := .
 COMPONENT_SRCDIRS := . http-parser espfs
+COMPONENT_ADD_LDFLAGS := -lahttpd
 
 ifdef CONFIG_AHTTPD_ENABLE_ESPFS
+COMPONENT_ADD_LDFLAGS += -lwebpages-espfs
 CFLAGS += -DCONFIG_AHTTPD_ENABLE_ESPFS
 COMPONENT_EXTRA_CLEAN := \
 	libwebpages-espfs.a \
@@ -45,6 +47,8 @@ else
 USE_HEATSHRINK := "no"
 endif  # CONFIG_AHTTPD_ESPFS_HEATSHRINK
 
+
+libahttpd.a: libwebpages-espfs.a
 
 webpages.espfs: $(PROJECT_PATH)/$(CONFIG_AHTTPD_HTMLDIR) mkespfsimage/mkespfsimage
 	cd $(PROJECT_PATH)/$(CONFIG_AHTTPD_HTMLDIR) && \
