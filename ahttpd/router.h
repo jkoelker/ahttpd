@@ -29,6 +29,26 @@
 #include <ahttpd/ahttpd.h>
 
 
+#define AHTTPD_ROUTE(routes, method, url, handler, data) \
+    do { \
+        struct ahttpd_route *__last; \
+        struct ahttpd_route __r = { (method), \
+                                    ((uint8_t *)url), \
+                                    (handler), \
+                                    (data), \
+                                    NULL }; \
+        if (routes != NULL) { \
+            __last = (routes); \
+            while (__last->next != NULL) { \
+                __last = __last->next; \
+            } \
+            __last->next = &__r; \
+        } else { \
+            (routes) = &__r; \
+        } \
+    } while (0)
+
+
 struct ahttpd_route {
     enum ahttpd_method method;
     uint8_t *url;
