@@ -7,6 +7,7 @@ COMPONENT_ADD_INCLUDEDIRS := .
 COMPONENT_SRCDIRS := . http-parser espfs
 
 ifdef CONFIG_AHTTPD_ENABLE_ESPFS
+CFLAGS += -DCONFIG_AHTTPD_ENABLE_ESPFS
 COMPONENT_EXTRA_CLEAN := \
 	libwebpages-espfs.a \
 	webpages.espfs \
