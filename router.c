@@ -66,9 +66,10 @@ void ahttpd_route_free(struct ahttpd_route *route) {
         free(route);
 }
 
+
 struct ahttpd_route *ahttpd_route_new(
         enum http_method method,
-        uint8_t *url,
+        char *url,
         enum ahttpd_status (*handler)(struct ahttpd_request *),
         void *data) {
     struct ahttpd_route *r;
@@ -79,7 +80,7 @@ struct ahttpd_route *ahttpd_route_new(
         return NULL;
     }
 
-    size_t url_len = strlen((char *)url);
+    size_t url_len = strlen(url) + 1;
     r->url = calloc(1, url_len);
 
     if (r->url == NULL) {
@@ -89,7 +90,7 @@ struct ahttpd_route *ahttpd_route_new(
     }
 
     r->method = method;
-    strncpy((char *)r->url, (char *)url, url_len);
+    snprintf(r->url, url_len, "%s", url);
     r->handler = handler;
     r->data = data;
 

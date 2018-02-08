@@ -76,7 +76,7 @@ static int on_url(http_parser* parser, const char *at, size_t length) {
             return 1;
         }
 
-        state->request->url = calloc(length + 1, sizeof(uint8_t));
+        state->request->url = calloc(length + 1, sizeof(char));
     } else {
         size_t len = strlen((char *)state->request->url) + length + 1;
         if (len >= AHTTPD_MAX_URL_SIZE) {

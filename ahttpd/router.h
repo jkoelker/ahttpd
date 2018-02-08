@@ -33,11 +33,11 @@
     do { \
         struct ahttpd_route *__last; \
         struct ahttpd_route __r = { (method), \
-                                    ((uint8_t *)url), \
+                                    (url), \
                                     (handler), \
                                     (data), \
                                     NULL }; \
-        if (routes != NULL) { \
+        if ((routes) != NULL) { \
             __last = (routes); \
             while (__last->next != NULL) { \
                 __last = __last->next; \
@@ -51,7 +51,7 @@
 
 struct ahttpd_route {
     enum ahttpd_method method;
-    uint8_t *url;
+    char *url;
     enum ahttpd_status (*handler)(struct ahttpd_request *);
 
     /* Opaque data pointer that will be injected into request->data */
@@ -62,7 +62,7 @@ struct ahttpd_route {
 
 struct ahttpd_route *ahttpd_route_new(
         enum http_method method,
-        uint8_t *url,
+        char *url,
         enum ahttpd_status (*handler)(struct ahttpd_request *),
         void *data);
 

@@ -60,7 +60,7 @@ enum ahttpd_status {
 
 struct ahttpd_request {
     enum ahttpd_method method;
-    uint8_t *url;
+    char *url;
     struct ahttpd_header *headers;
     const uint8_t *body;
     size_t body_len;
