@@ -104,8 +104,7 @@ static struct ahttpd_route *ahttpd_copy_route(struct ahttpd_route *route) {
 }
 
 
-esp_err_t ahttpd_init_routes(struct ahttpd_route *routes) {
-    struct ahttpd_route *route;
+esp_err_t ahttpd_router_init(struct ahttpd_route *routes) {
     struct ahttpd_route *r;
 
     if (routes == NULL) {
@@ -117,21 +116,19 @@ esp_err_t ahttpd_init_routes(struct ahttpd_route *routes) {
     }
 
     _routes = ahttpd_copy_route(routes);
-
-    if (_routes == NULL) {
-        ESP_LOGE(TAG, "Error copying routes: Out of memory");
-        return ESP_ERR_NO_MEM;
-    }
-
     r = _routes;
-    while ((route = routes->next) != NULL) {
-        r->next = ahttpd_copy_route(route);
+    routes = routes->next;
+
+    while (routes != NULL) {
+        r->next = ahttpd_copy_route(routes);
 
         if (r->next == NULL) {
             ahttpd_free_routes(_routes);
-            _routes = NULL;
             return ESP_ERR_NO_MEM;
         }
+
+        r = r->next;
+        routes = routes->next;
     }
 
     return ESP_OK;
@@ -150,15 +147,17 @@ void ahttpd_router_404_handler(
 
 
 enum ahttpd_status ahttpd_router(struct ahttpd_request *request) {
-    struct ahttpd_route *route;
     enum ahttpd_status status;
+    struct ahttpd_route *route = _routes;
 
-    if (_routes == NULL) {
+    route = _routes;
+    if (route == NULL) {
         return ahttpd_404(request);
     }
 
-    while ((route = _routes->next) != NULL) {
-        if (route->method != AHTTPD_ANY || route->method != request->method) {
+    while (route != NULL) {
+        if (route->method != AHTTPD_ANY && route->method != request->method) {
+            route = route->next;
             continue;
         }
 
@@ -182,6 +181,8 @@ enum ahttpd_status ahttpd_router(struct ahttpd_request *request) {
 
             request->data = data;
         }
+
+        route = route->next;
     }
 
     return ahttpd_404(request);

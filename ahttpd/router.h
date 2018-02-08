@@ -68,7 +68,7 @@ struct ahttpd_route *ahttpd_route_new(
 
 void ahttpd_route_free(struct ahttpd_route *route);
 
-esp_err_t ahttpd_init_routes(struct ahttpd_route *routes);
+esp_err_t ahttpd_router_init(struct ahttpd_route *routes);
 
 struct ahttpd_route *ahttpd_get_routes(void);
 
