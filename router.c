@@ -147,7 +147,7 @@ void ahttpd_router_404_handler(
 
 
 enum ahttpd_status ahttpd_router(struct ahttpd_request *request) {
-    enum ahttpd_status status;
+    enum ahttpd_status status = AHTTPD_NOT_FOUND;
     struct ahttpd_route *route = _routes;
 
     route = _routes;
