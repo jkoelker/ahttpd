@@ -48,6 +48,15 @@
         (method), (url), (handler), (data), NULL })); \
 
 
+#define AHTTPD_REDIRECT(routes, url, dest) \
+    do { \
+        size_t __dest_len = strlen(dest) + 1; \
+        char *__dest = calloc(__dest_len, sizeof(*__dest)); \
+        snprintf(__dest, __dest_len, "%s", dest); \
+        AHTTPD_ROUTE(routes, AHTTPD_ANY, url, (&ahttpd_redirect), __dest); \
+    } while (0)
+
+
 struct ahttpd_route {
     enum ahttpd_method method;
     char *url;
