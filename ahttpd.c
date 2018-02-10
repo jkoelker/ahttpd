@@ -294,6 +294,7 @@ static void ahttpd_state_free(struct ahttpd_state *state) {
     }
 
     free(state->parser);
+    free(state->request->url);
     free(state->request);
     free(state);
 }
