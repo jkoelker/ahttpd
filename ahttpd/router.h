@@ -61,7 +61,7 @@ struct ahttpd_route {
 
 
 struct ahttpd_route *ahttpd_route_new(
-        enum http_method method,
+        enum ahttpd_method method,
         char *url,
         enum ahttpd_status (*handler)(struct ahttpd_request *),
         void *data);
