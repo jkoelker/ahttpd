@@ -496,14 +496,6 @@ static err_t ahttpd_poll(void *arg, struct tcp_pcb *pcb) {
         return ERR_OK;
     }
 
-    state->retry_count++;
-
-    if (state->retry_count >= 4) {
-        ESP_LOGD(TAG, "Send retries exceeded");
-        ahttpd_close(pcb, state);
-        return ERR_OK;
-    }
-
     if (state->unsent != NULL) {
         struct unsent_buf *unsent;
         uint16_t len = _ahttpd_write(pcb, state->unsent->buf,
@@ -544,6 +536,14 @@ static err_t ahttpd_poll(void *arg, struct tcp_pcb *pcb) {
         }
 
     } else {
+        state->retry_count++;
+
+        if (state->retry_count >= 4) {
+            ESP_LOGD(TAG, "Send retries exceeded");
+            ahttpd_close(pcb, state);
+            return ERR_OK;
+        }
+
         call_handler(state);
     }
 
