@@ -29,24 +29,23 @@
 #include <ahttpd/ahttpd.h>
 
 
-#define AHTTPD_ROUTE(routes, method, url, handler, data) \
+#define AHTTPD_ADD_ROUTE(routes, route) \
     do { \
-        struct ahttpd_route *__last; \
-        struct ahttpd_route __r = { (method), \
-                                    (url), \
-                                    (handler), \
-                                    (data), \
-                                    NULL }; \
-        if ((routes) != NULL) { \
-            __last = (routes); \
-            while (__last->next != NULL) { \
-                __last = __last->next; \
-            } \
-            __last->next = &__r; \
+        struct ahttpd_route *__r; \
+        (route)->next = NULL; \
+        if (routes) { \
+            __r = (routes); \
+            while (__r->next) { __r = __r->next; } \
+            __r->next = (route); \
         } else { \
-            (routes) = &__r; \
+            (routes) = (route); \
         } \
     } while (0)
+
+
+#define AHTTPD_ROUTE(routes, method, url, handler, data) \
+    AHTTPD_ADD_ROUTE(routes, &((struct ahttpd_route) { \
+        (method), (url), (handler), (data), NULL })); \
 
 
 struct ahttpd_route {
