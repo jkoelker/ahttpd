@@ -156,6 +156,10 @@ enum ahttpd_status ahttpd_router(struct ahttpd_request *request) {
     }
 
     while (route != NULL) {
+        if (request == NULL || request->url == NULL) {
+            return AHTTPD_DONE;
+        }
+
         if (route->method != AHTTPD_ANY && route->method != request->method) {
             route = route->next;
             continue;
