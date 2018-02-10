@@ -105,35 +105,28 @@ static esp_err_t ahttpd_fs_init(void) {
   ----------------------------------------------------------------------------
  */
 enum ahttpd_status ahttpd_fs_handler(struct ahttpd_request *request) {
-    esp_err_t err;
-    char buf[CHUNK_SIZE];
-
     EspFsFile *file = (EspFsFile *)request->data;
 
-    err = ahttpd_fs_init();
-    ESP_ERROR_CHECK(err);
+    if (!FS_INITED) {
+        esp_err_t err = ahttpd_fs_init();
+        ESP_ERROR_CHECK(err);
 
-    if (err != ESP_OK) {
-        return AHTTPD_NOT_FOUND;
+        if (err != ESP_OK) {
+            return AHTTPD_NOT_FOUND;
+        }
     }
 
     if (file == NULL) {
         bool gzipped;
         struct ahttpd_header *accept;
-        const char *mimetype;
+        const char *mimetype = NULL;
 
-        file = espFsOpen((char *)request->url);
-
-        if (file == NULL) {
-            char buf[AHTTPD_MAX_URL_SIZE];
-            snprintf(buf, sizeof(buf), "%s/index.html", request->url);
-            mimetype = "text/html";
-            file = espFsOpen(buf);
-        }
+        file = espFsOpen((char *)(request->url));
 
         if (file == NULL) {
             return AHTTPD_NOT_FOUND;
         }
+
 
         gzipped = (espFsFlags(file) & FLAG_GZIP) == FLAG_GZIP;
         if (gzipped) {
@@ -172,12 +165,15 @@ enum ahttpd_status ahttpd_fs_handler(struct ahttpd_request *request) {
         return AHTTPD_MORE;
     }
 
+    char buf[CHUNK_SIZE];
+
     int len = espFsRead(file, buf, CHUNK_SIZE);
     if (len > 0) {
         ahttpd_send(request, buf, len);
         return AHTTPD_MORE;
     }
 
+    espFsClose(file);
     return AHTTPD_DONE;
 }
 
