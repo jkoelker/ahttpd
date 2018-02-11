@@ -272,7 +272,14 @@ static err_t ahttpd_state_alloc(struct tcp_pcb *newpcb,
 
 
 static void ahttpd_state_free(struct ahttpd_state *state) {
-    ESP_LOGD(TAG, "Freeing state.");
+    const char *url;
+    if (state->request->url != NULL) {
+        url = state->request->url;
+    } else {
+        url = "<NULL>";
+    }
+
+    ESP_LOGD(TAG, "Freeing state for request url: %s", url);
 
     if (state->request->headers != NULL) {
         struct ahttpd_header *header;
