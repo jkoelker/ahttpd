@@ -483,6 +483,7 @@ static void ahttpd_write(struct ahttpd_state *state, struct tcp_pcb *pcb,
     }
 
     len = _ahttpd_write(pcb, buf, length);
+    state->retry_count = 0;
 
     if (len != length) {
         esp_err = ahttpd_unsent(state, buf + len, length - len);
@@ -507,6 +508,7 @@ static err_t ahttpd_poll(void *arg, struct tcp_pcb *pcb) {
         struct unsent_buf *unsent;
         uint16_t len = _ahttpd_write(pcb, state->unsent->buf,
                                      state->unsent->len);
+        state->retry_count = 0;
 
         if (len == state->unsent->len) {
             unsent = state->unsent;
