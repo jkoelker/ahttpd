@@ -193,6 +193,7 @@ enum ahttpd_status ahttpd_fs_handler(struct ahttpd_request *request) {
 
     int len = espFsRead(f->file, buf, CHUNK_SIZE);
     if (len > 0) {
+        ESP_LOGD(TAG, "Sending %d from file %s", len, f->path);
         ahttpd_send(request, buf, len);
         return AHTTPD_MORE;
     }
