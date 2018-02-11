@@ -18,13 +18,14 @@ It's written for use with httpd, but doesn't need to be used as such.
 //simplifies debugging, but needs some slightly different headers. The #ifdef takes
 //care of that.
 
+#include <stdint.h>
+
 #if __ets__ || ESP_PLATFORM
 //esp build
 #include "esp8266.h"
 #else
 //Test build
 #include <stdio.h>
-#include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 #define ICACHE_FLASH_ATTR
@@ -150,7 +151,7 @@ EspFsFile ICACHE_FLASH_ATTR *espFsOpen(char *fileName) {
 	while(1) {
 		hpos=p;
 		//Grab the next file header.
-		readFlashAligned((uint32*)&h, (uint32)p, sizeof(EspFsHeader));
+		readFlashAligned((uint32_t *)&h, (uint32_t)p, sizeof(EspFsHeader));
 
 		if (h.magic!=ESPFS_MAGIC) {
 			httpd_printf("Magic mismatch. EspFS image broken.\n");
@@ -161,8 +162,8 @@ EspFsFile ICACHE_FLASH_ATTR *espFsOpen(char *fileName) {
 			return NULL;
 		}
 		//Grab the name of the file.
-		p+=sizeof(EspFsHeader); 
-		readFlashAligned((uint32*)&namebuf, (uint32)p, sizeof(namebuf));
+		p+=sizeof(EspFsHeader);
+		readFlashAligned((uint32_t *)&namebuf, (uint32_t)p, sizeof(namebuf));
 //		httpd_printf("Found file '%s'. Namelen=%x fileLenComp=%x, compr=%d flags=%d\n", 
 //				namebuf, (unsigned int)h.nameLen, (unsigned int)h.fileLenComp, h.compression, h.flags);
 		if (strcmp(namebuf, fileName)==0) {
