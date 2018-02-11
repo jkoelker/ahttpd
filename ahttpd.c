@@ -61,6 +61,9 @@ struct ahttpd_state {
 };
 
 
+static void ahttpd_close(struct tcp_pcb *tpcb, struct ahttpd_state *state);
+
+
 static int on_url(http_parser* parser, const char *at, size_t length) {
     struct ahttpd_state *state = (struct ahttpd_state *)parser->data;
 
@@ -200,6 +203,13 @@ static int on_headers_complete(http_parser* parser) {
         return 1;
     }
 
+    if (state->request->url == NULL) {
+        ESP_LOGE(TAG, "Headers complete without URL! Closing connection.");
+        ahttpd_close(state->pcb, state);
+        return 1;
+    }
+
+    ESP_LOGD(TAG, "New request for url %s", state->request->url);
     call_handler(state);
 
     if (state->status == AHTTPD_DONE) {
