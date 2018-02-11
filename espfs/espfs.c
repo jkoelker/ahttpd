@@ -53,6 +53,18 @@ struct EspFsFile {
 	void *decompData;
 };
 
+
+struct EspFs {
+    char *name;
+    char *position;
+
+    struct EspFs *next;
+};
+
+
+static struct EspFs *_fs = NULL;
+
+
 /*
 Available locations, at least in my flash, with boundaries partially guessed. This
 is using 0.9.1/0.9.2 SDK on a not-too-new module.
@@ -95,6 +107,82 @@ void ICACHE_FLASH_ATTR readFlashAligned(uint32 *dst, uint32_t pos, int len) {
 #define readFlashAligned(a,b,c) memcpy(a, (uint32_t*)b, c)
 #endif
 
+
+static void freeEspFS(void) {
+    struct EspFs *f;
+    while ((f = _fs) != NULL) {
+        _fs = _fs->next;
+        free(f->name);
+        free(f);
+    }
+}
+
+
+static void scanEspFS(void) {
+	if (_fs != NULL) {
+        return;
+	}
+
+	char *p = espFsData;
+	char namebuf[256];
+
+	EspFsHeader h;
+    struct EspFs *f;
+
+	while(1) {
+		// Grab the next file header.
+		readFlashAligned((uint32_t *)&h, (uint32_t)p, sizeof(EspFsHeader));
+
+		if (h.magic != ESPFS_MAGIC) {
+			httpd_printf("Magic mismatch. EspFS image broken.\n");
+            freeEspFS();
+			return;
+		}
+
+		if (h.flags & FLAG_LASTFILE) {
+			httpd_printf("End of image.\n");
+			break;
+		}
+
+        f = calloc(1, sizeof(*f));
+
+        if (f == NULL) {
+			httpd_printf("Failed to scan, out of memory.\n");
+            freeEspFS();
+			return;
+        }
+
+        f->position = p;
+
+		// Grab the name of the file.
+		p += sizeof(EspFsHeader);
+		readFlashAligned((uint32_t *)&namebuf, (uint32_t)p, sizeof(namebuf));
+
+        size_t name_len = strlen(namebuf) + 1;
+        f->name = calloc(name_len, sizeof(*(f->name)));
+        if (f->name == NULL) {
+			httpd_printf("Failed to scan, out of memory.\n");
+            free(f);
+            freeEspFS();
+			return;
+        }
+
+        snprintf(f->name, name_len, "%s", namebuf);
+
+		p += h.nameLen + h.fileLenComp;
+		if ((int)p & 3) {
+            p += 4 - ((int)p &3 ); // align to next 32bit val
+        }
+
+        if (_fs != NULL) {
+            f->next = _fs;
+        }
+
+        _fs = f;
+	}
+}
+
+
 EspFsInitResult ICACHE_FLASH_ATTR espFsInit(void *flashAddress) {
 #ifndef ESP32
 	if((uint32_t)flashAddress > 0x40000000) {
@@ -116,6 +204,7 @@ EspFsInitResult ICACHE_FLASH_ATTR espFsInit(void *flashAddress) {
 	}
 
 	espFsData = (char *)flashAddress;
+    scanEspFS();
 	return ESPFS_INIT_RESULT_OK;
 }
 
@@ -140,68 +229,61 @@ EspFsFile ICACHE_FLASH_ATTR *espFsOpen(char *fileName) {
 		httpd_printf("Call espFsInit first!\n");
 		return NULL;
 	}
-	char *p=espFsData;
-	char *hpos;
-	char namebuf[256];
-	EspFsHeader h;
-	EspFsFile *r;
-	//Strip initial slashes
-	while(fileName[0]=='/') fileName++;
-	//Go find that file!
-	while(1) {
-		hpos=p;
-		//Grab the next file header.
-		readFlashAligned((uint32_t *)&h, (uint32_t)p, sizeof(EspFsHeader));
 
-		if (h.magic!=ESPFS_MAGIC) {
-			httpd_printf("Magic mismatch. EspFS image broken.\n");
-			return NULL;
-		}
-		if (h.flags&FLAG_LASTFILE) {
-			httpd_printf("End of image.\n");
-			return NULL;
-		}
-		//Grab the name of the file.
-		p+=sizeof(EspFsHeader);
-		readFlashAligned((uint32_t *)&namebuf, (uint32_t)p, sizeof(namebuf));
-//		httpd_printf("Found file '%s'. Namelen=%x fileLenComp=%x, compr=%d flags=%d\n", 
-//				namebuf, (unsigned int)h.nameLen, (unsigned int)h.fileLenComp, h.compression, h.flags);
-		if (strcmp(namebuf, fileName)==0) {
-			//Yay, this is the file we need!
-			p+=h.nameLen; //Skip to content.
-			r=(EspFsFile *)malloc(sizeof(EspFsFile)); //Alloc file desc mem
-//			httpd_printf("Alloc %p\n", r);
-			if (r==NULL) return NULL;
-			r->header=(EspFsHeader *)hpos;
-			r->decompressor=h.compression;
-			r->posComp=p;
-			r->posStart=p;
-			r->posDecomp=0;
-			if (h.compression==COMPRESS_NONE) {
-				r->decompData=NULL;
+	EspFsFile *r;
+    struct EspFs *f = _fs;
+
+	// Strip initial slashes
+	while(fileName[0]=='/') fileName++;
+
+    while (f != NULL) {
+		if (strcmp(f->name, fileName) == 0) {
+            break;
+        }
+
+        f = f->next;
+    }
+
+    if (f == NULL) {
+		httpd_printf("File not found: %s\n", fileName);
+        return NULL;
+    }
+
+    r = malloc(sizeof(EspFsFile));  // Alloc file desc mem
+
+    if (r == NULL) {
+		httpd_printf("Failed to alloc file handler for file: %s\n", fileName);
+        return NULL;
+    }
+
+    r->header = (EspFsHeader *)f->position;
+	r->decompressor = r->header->compression;
+	r->posComp = f->position + r->header->nameLen + sizeof(EspFsHeader);
+	r->posStart = r->posComp;
+	r->posDecomp = 0;
+
+    if (r->header->compression == COMPRESS_NONE) {
+	    r->decompData=NULL;
 #ifdef ESPFS_HEATSHRINK
-			} else if (h.compression==COMPRESS_HEATSHRINK) {
-				//File is compressed with Heatshrink.
-				char parm;
-				heatshrink_decoder *dec;
-				//Decoder params are stored in 1st byte.
-				readFlashUnaligned(&parm, r->posComp, 1);
-				r->posComp++;
-				httpd_printf("Heatshrink compressed file; decode parms = %x\n", parm);
-				dec=heatshrink_decoder_alloc(16, (parm>>4)&0xf, parm&0xf);
-				r->decompData=dec;
+    } else if (r->header->compression==COMPRESS_HEATSHRINK) {
+        // File is compressed with Heatshrink.
+	    char parm;
+	    heatshrink_decoder *dec;
+	    // Decoder params are stored in 1st byte.
+	    readFlashUnaligned(&parm, r->posComp, 1);
+		r->posComp++;
+		httpd_printf("Heatshrink compressed file; decode parms = %x\n", parm);
+		dec = heatshrink_decoder_alloc(16, (parm >> 4) & 0xf, parm & 0xf);
+		r->decompData = dec;
 #endif
-			} else {
-				httpd_printf("Invalid compression: %d\n", h.compression);
-				return NULL;
-			}
-			return r;
-		}
-		//We don't need this file. Skip name and file
-		p+=h.nameLen+h.fileLenComp;
-		if ((int)p&3) p+=4-((int)p&3); //align to next 32bit val
+	} else {
+	    httpd_printf("Invalid compression: %d\n", r->header->compression);
+	    return NULL;
 	}
+
+    return r;
 }
+
 
 //Read len bytes from the given file into buff. Returns the actual amount of bytes read.
 int ICACHE_FLASH_ATTR espFsRead(EspFsFile *fh, char *buff, int len) {
