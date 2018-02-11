@@ -205,6 +205,7 @@ static enum ahttpd_status _ahttpd_redirect(struct ahttpd_request *request,
     snprintf(body, sizeof(body), "Moved to %s", url);
     ahttpd_start_response(request, code);
     ahttpd_send_header(request, "Location", url);
+    ahttpd_send_header(request, "Content-Type", "text/plain");
     ahttpd_end_headers(request);
     ahttpd_send(request, body, strlen((char *)body));
     return AHTTPD_DONE;
