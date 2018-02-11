@@ -95,6 +95,13 @@ static esp_err_t ahttpd_fs_init(void) {
 }
 
 
+
+struct _file {
+    char *path;
+    EspFsFile *file;
+};
+
+
 /* NOTE(jkoelker) This function is basically a port of cgiEspFsHook
                   from libesphttpd covered under the following:
   ----------------------------------------------------------------------------
@@ -105,7 +112,7 @@ static esp_err_t ahttpd_fs_init(void) {
   ----------------------------------------------------------------------------
  */
 enum ahttpd_status ahttpd_fs_handler(struct ahttpd_request *request) {
-    EspFsFile *file = (EspFsFile *)request->data;
+    struct _file *f = (struct _file *)request->data;
 
     if (!FS_INITED) {
         esp_err_t err = ahttpd_fs_init();
@@ -116,17 +123,16 @@ enum ahttpd_status ahttpd_fs_handler(struct ahttpd_request *request) {
         }
     }
 
-    if (file == NULL) {
+    if (f == NULL) {
         bool gzipped;
         struct ahttpd_header *accept;
         const char *mimetype = NULL;
 
-        file = espFsOpen((char *)(request->url));
+        EspFsFile *file = espFsOpen((char *)(request->url));
 
         if (file == NULL) {
             return AHTTPD_NOT_FOUND;
         }
-
 
         gzipped = (espFsFlags(file) & FLAG_GZIP) == FLAG_GZIP;
         if (gzipped) {
@@ -137,10 +143,9 @@ enum ahttpd_status ahttpd_fs_handler(struct ahttpd_request *request) {
             }
         }
 
-        request->data = file;
-
+        size_t url_len = strlen((char *)request->url);
         if (mimetype == NULL) {
-            char *ext = (char *)request->url + strlen((char *)request->url) - 1;
+            char *ext = (char *)request->url + url_len - 1;
             while (ext != (char *)request->url && *(ext - 1) != '.') {
                 ext--;
             }
@@ -151,6 +156,25 @@ enum ahttpd_status ahttpd_fs_handler(struct ahttpd_request *request) {
                 mimetype = "application/octet-stream";
             }
         }
+
+        f = calloc(1, sizeof(*f));
+        if (f == NULL) {
+            ESP_LOGE(TAG, "OOM while creating file struct for path %s",
+                     request->url);
+            return AHTTPD_DONE;
+        }
+
+        f->path = calloc(url_len + 1, sizeof(*(f->path)));
+        if (f->path == NULL) {
+            ESP_LOGE(TAG, "OOM while creating file url for path %s",
+                     request->url);
+            free(f);
+            return AHTTPD_DONE;
+        }
+
+        snprintf(f->path, url_len + 1, "%s", request->url);
+        f->file = file;
+        request->data = f;
 
         ahttpd_start_response(request, 200);
         ahttpd_send_header(request, "Content-Type", mimetype);
@@ -167,13 +191,15 @@ enum ahttpd_status ahttpd_fs_handler(struct ahttpd_request *request) {
 
     char buf[CHUNK_SIZE];
 
-    int len = espFsRead(file, buf, CHUNK_SIZE);
+    int len = espFsRead(f->file, buf, CHUNK_SIZE);
     if (len > 0) {
         ahttpd_send(request, buf, len);
         return AHTTPD_MORE;
     }
 
-    espFsClose(file);
+    espFsClose(f->file);
+    free(f->path);
+    free(f);
     return AHTTPD_DONE;
 }
 
