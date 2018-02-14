@@ -695,7 +695,7 @@ void ahttpd_start_response(struct ahttpd_request *request, uint16_t code) {
         return;
     }
 
-    snprintf(buf, sizeof(buf), "HTTPD/1.1 %" PRIu16 " OK\r\n", code);
+    snprintf(buf, sizeof(buf), "HTTP/1.1 %" PRIu16 " OK\r\n", code);
     ahttpd_write(state, state->pcb, buf, strlen(buf));
 }
 
