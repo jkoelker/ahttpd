@@ -43,3 +43,10 @@ config AHTTPD_ESPFS_GZIP_EXTS
     default "html,css,js,svg"
     help
         Enable GZIPing files specified in csv (passed to mkespfsimage via '-g')
+
+config AHTTPD_ESPFS_CHUNK_SIZE
+    depends on AHTTPD_ENABLE_ESPFS
+    int "FS send chunk size"
+    default 1024
+    help
+        Chunk size to read/send in one callback iteration

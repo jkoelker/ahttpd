@@ -39,7 +39,9 @@
 #include "ahttpd/ahttpd.h"
 #include "ahttpd/router.h"
 
-#define CHUNK_SIZE 1024
+#ifndef CHUNK_SIZE
+#define CHUNK_SIZE AHTTPD_ESPFS_CHUNK_SIZE
+#endif
 
 
 static const char* TAG = "ahttpd-fs";
