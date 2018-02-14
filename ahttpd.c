@@ -554,6 +554,10 @@ static err_t ahttpd_poll(void *arg, struct tcp_pcb *pcb) {
             state->unsent = unsent;
         }
 
+        if (state->status == AHTTPD_DONE && state->unsent == NULL) {
+            ahttpd_close(pcb, state);
+        }
+
     } else {
         state->retry_count++;
 
