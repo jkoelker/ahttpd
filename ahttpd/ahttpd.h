@@ -69,6 +69,8 @@ struct ahttpd_request {
 
     /* data pointer for application use */
     void *data;
+    /* state pointer for application use */
+    void *state;
 
     /* internal state pointer */
     void *_state;
