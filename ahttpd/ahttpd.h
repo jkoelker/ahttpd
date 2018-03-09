@@ -69,6 +69,8 @@ struct ahttpd_request {
 
     /* data pointer for application use */
     void *data;
+    /* flag to call free on data pointer */
+    uint8_t free_data;
     /* state pointer for application use */
     void *state;
 

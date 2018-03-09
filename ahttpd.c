@@ -269,6 +269,7 @@ static err_t ahttpd_state_alloc(struct tcp_pcb *newpcb,
     }
 
     s->request->handler = httpd->router;
+    s->request->free_data = 0;
     s->request->_state = s;
     http_parser_init(s->parser, HTTP_REQUEST);
     s->parser->data = s;
@@ -311,6 +312,11 @@ static void ahttpd_state_free(struct ahttpd_state *state) {
     }
 
     free(state->parser);
+
+    if (state->request->free_data) {
+        free(state->request->data);
+    }
+
     free(state->request->url);
     free(state->request);
     free(state);
