@@ -764,13 +764,6 @@ void ahttpd_send(struct ahttpd_request *request, void *buf, size_t length) {
 }
 
 
-void ahttpd_send_file(struct ahttpd_request *request, const char *pathname) {
-    /*
-    struct ahttpd_state *state = (struct ahttpd_state *)request->_state;
-    */
-}
-
-
 struct ahttpd_header *ahttpd_find_header(struct ahttpd_request *request,
                                          char *name) {
     struct ahttpd_header *header = request->headers;

@@ -126,8 +126,6 @@ void ahttpd_end_headers(struct ahttpd_request *request);
 
 void ahttpd_send(struct ahttpd_request *request, void *buf, size_t length);
 
-void ahttpd_send_file(struct ahttpd_request *request, const char *pathname);
-
 struct ahttpd_header *ahttpd_find_header(struct ahttpd_request *request,
                                          char *name);
 
