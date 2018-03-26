@@ -379,6 +379,13 @@ static err_t ahttpd_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p,
     size_t plen;
 
     for (q = p; q != NULL; q = q->next) {
+        if (state->status == AHTTPD_DONE) {
+            tcp_recved(tpcb, p->tot_len);
+            pbuf_free(p);
+            ahttpd_close(tpcb, state);
+            return ERR_OK;
+        }
+
         plen = http_parser_execute(state->parser,
                                    &settings,
                                    q->payload,
