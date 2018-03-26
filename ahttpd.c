@@ -393,6 +393,9 @@ static err_t ahttpd_recv(void *arg, struct tcp_pcb *tpcb, struct pbuf *p,
         }
 
         if (plen != q->len) {
+            const char* name = http_errno_name(state->parser->http_errno);
+            const char* desc = http_errno_description(state->parser->http_errno);
+            ESP_LOGE(TAG, "%s: %s", name, desc);
             ESP_LOGE(TAG, "plen(%d) != q->len(%d)", plen, q->len);
             ESP_LOGE(TAG, "HTTP parsing error, dropping connection.");
             tcp_recved(tpcb, p->tot_len);
