@@ -427,7 +427,7 @@ static void ahttpd_err(void *arg, err_t err) {
 }
 
 
-static esp_err_t ahttpd_unsent(struct ahttpd_state *state, void *buf,
+static esp_err_t ahttpd_unsent(struct ahttpd_state *state, const void *buf,
                                size_t length) {
     struct unsent_buf *unsent = calloc(1, sizeof(*unsent));
 
@@ -459,7 +459,8 @@ static esp_err_t ahttpd_unsent(struct ahttpd_state *state, void *buf,
 }
 
 
-static size_t _ahttpd_write(struct tcp_pcb *pcb, void *buf, size_t length) {
+static size_t _ahttpd_write(struct tcp_pcb *pcb, const void *buf,
+                            size_t length) {
     uint16_t len;
     uint16_t max_len;
     err_t err;
@@ -493,7 +494,7 @@ static size_t _ahttpd_write(struct tcp_pcb *pcb, void *buf, size_t length) {
 
 
 static void ahttpd_write(struct ahttpd_state *state, struct tcp_pcb *pcb,
-                         void *buf, size_t length) {
+                         const void *buf, size_t length) {
     uint16_t len;
     esp_err_t esp_err;
 
@@ -763,7 +764,8 @@ void ahttpd_end_headers(struct ahttpd_request *request) {
 }
 
 
-void ahttpd_send(struct ahttpd_request *request, void *buf, size_t length) {
+void ahttpd_send(struct ahttpd_request *request, const void *buf,
+                 size_t length) {
     struct ahttpd_state *state = (struct ahttpd_state *)request->_state;
 
     if (state == NULL) {
@@ -775,7 +777,7 @@ void ahttpd_send(struct ahttpd_request *request, void *buf, size_t length) {
 
 
 struct ahttpd_header *ahttpd_find_header(struct ahttpd_request *request,
-                                         char *name) {
+                                         const char *name) {
     struct ahttpd_header *header = request->headers;
     while (header != NULL) {
         if (strcasecmp(name, header->name) == 0) {

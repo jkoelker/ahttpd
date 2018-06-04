@@ -124,10 +124,11 @@ void ahttpd_send_headers(struct ahttpd_request *request,
 
 void ahttpd_end_headers(struct ahttpd_request *request);
 
-void ahttpd_send(struct ahttpd_request *request, void *buf, size_t length);
+void ahttpd_send(struct ahttpd_request *request, const void *buf,
+                 size_t length);
 
 struct ahttpd_header *ahttpd_find_header(struct ahttpd_request *request,
-                                         char *name);
+                                         const char *name);
 
 ip_addr_t *ahttpd_remote_ip(struct ahttpd_request *request);
 

@@ -45,7 +45,7 @@
 
 #define AHTTPD_ROUTE(routes, method, url, handler, data) \
     AHTTPD_ADD_ROUTE(routes, &((struct ahttpd_route) { \
-        (method), (url), (handler), (data), NULL })); \
+        (method), (char *)(url), (handler), (data), NULL })); \
 
 
 #define AHTTPD_REDIRECT(routes, url, dest) \
@@ -70,7 +70,7 @@ struct ahttpd_route {
 
 struct ahttpd_route *ahttpd_route_new(
         enum ahttpd_method method,
-        char *url,
+        const char *url,
         enum ahttpd_status (*handler)(struct ahttpd_request *),
         void *data);
 
