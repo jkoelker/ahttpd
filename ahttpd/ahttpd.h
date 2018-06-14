@@ -52,6 +52,7 @@ enum ahttpd_method {
 
 
 enum ahttpd_status {
+    AHTTPD_NONE,
     AHTTPD_MORE,
     AHTTPD_DONE,
     AHTTPD_NOT_FOUND,

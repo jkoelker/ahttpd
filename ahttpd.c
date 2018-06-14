@@ -189,7 +189,7 @@ static int on_header_value(http_parser* parser, const char *at,
 
 
 static void call_handler(struct ahttpd_state *state) {
-    if (state->status == AHTTPD_MORE && state->request->handler != NULL) {
+    if (state->status != AHTTPD_DONE && state->request->handler != NULL) {
         state->status = state->request->handler(state->request);
     }
 }
@@ -276,6 +276,7 @@ static err_t ahttpd_state_alloc(struct tcp_pcb *newpcb,
     s->retry_count = 0;
     s->httpd = httpd;
     s->pcb = newpcb;
+    s->status = AHTTPD_NONE;
 
     *state = s;
     return ESP_OK;
@@ -578,7 +579,7 @@ static err_t ahttpd_poll(void *arg, struct tcp_pcb *pcb) {
     } else {
         state->retry_count++;
 
-        if (state->retry_count >= 4) {
+        if (state->retry_count >= 4 && state->status == AHTTPD_NONE) {
             ESP_LOGD(TAG, "Send retries exceeded");
             ahttpd_close(pcb, state);
             return ERR_OK;
