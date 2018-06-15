@@ -576,6 +576,11 @@ static err_t ahttpd_poll(void *arg, struct tcp_pcb *pcb) {
             ahttpd_close(pcb, state);
         }
 
+    } else if (state->status == AHTTPD_DONE ||
+               state->status == AHTTPD_NOT_FOUND) {
+        ahttpd_close(pcb, state);
+        return ERR_OK;
+
     } else {
         state->retry_count++;
 
