@@ -477,7 +477,7 @@ static size_t _ahttpd_write(struct tcp_pcb *pcb, const void *buf,
 
     while (err == ERR_MEM && len > 0) {
         if (tcp_sndbuf(pcb) == 0 ||
-                tcp_sndqueuelen(pcb) >= TCP_SND_QUEUELEN(pcb)) {
+                tcp_sndqueuelen(pcb) >= TCP_SND_QUEUELEN) {
             len = 0;
         } else {
             len = len / 2;
