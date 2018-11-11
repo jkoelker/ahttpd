@@ -25,6 +25,7 @@
 
 #include <esp_err.h>
 #include <stdint.h>
+#include <string.h>
 
 #include <ahttpd/ahttpd.h>
 
