@@ -50,3 +50,24 @@ config AHTTPD_ESPFS_CHUNK_SIZE
     default 1024
     help
         Chunk size to read/send in one callback iteration
+
+config AHTTPD_MAX_URL_SIZE
+    depends on AHTTPD_ENABLE
+    int "URL max allocation size"
+    default 256
+    help
+        Maximum size of URLs to allow, larger urls will fail to parse
+
+config AHTTPD_MAX_HEADER_NAME_SIZE
+    depends on AHTTPD_ENABLE
+    int "Header Name  max allocation size"
+    default 128
+    help
+        Maximum size of header names to allow, larger names will fail to parse
+
+config AHTTPD_MAX_HEADER_VALUE_SIZE
+    depends on AHTTPD_ENABLE
+    int "URL max allocation size"
+    default 512
+    help
+        Maximum size of header values to allow, larger values will fail to parse
